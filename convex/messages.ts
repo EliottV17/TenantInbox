@@ -215,3 +215,35 @@ export const resolve = mutation({
     });
   },
 });
+
+/**
+ * Retry classification for a failed or stuck message.
+ *
+ * Guards:
+ * - Message must exist and not be resolved (resolvedAt === undefined).
+ * - Resets status to "new", clears failReason, and schedules a new action.
+ */
+export const retryClassification = mutation({
+  args: {
+    id: v.id("messages"),
+  },
+  handler: async (ctx, args) => {
+    const message = await ctx.db.get(args.id);
+    if (!message) {
+      throw new Error("Message not found");
+    }
+    if (message.resolvedAt !== undefined) {
+      throw new Error("Cannot retry classification of a resolved message");
+    }
+
+    await ctx.db.patch(args.id, {
+      status: "new",
+      failReason: undefined,
+      classifyingStartedAt: undefined,
+    });
+
+    await ctx.scheduler.runAfter(0, internal.classify.classifyMessage, {
+      messageId: args.id,
+    });
+  },
+});
