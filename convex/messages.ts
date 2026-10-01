@@ -1,4 +1,5 @@
 import { internalMutation, mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
 export const MAX_SENDER_LENGTH = 100;
@@ -65,6 +66,10 @@ export const create = mutation({
       status: "new",
     });
 
+    await ctx.scheduler.runAfter(0, internal.classify.classifyMessage, {
+      messageId,
+    });
+
     return messageId;
   },
 });
@@ -85,6 +90,10 @@ export const createFromWebhook = internalMutation({
       body: validated.body,
       channel: "webhook",
       status: "new",
+    });
+
+    await ctx.scheduler.runAfter(0, internal.classify.classifyMessage, {
+      messageId,
     });
 
     return messageId;
