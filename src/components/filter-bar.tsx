@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   ALL_FILTER_VALUE,
   CATEGORY_FILTER_PARAM,
@@ -58,9 +59,14 @@ export function FilterBar({ category, urgency, onChange, onClear }: FilterBarPro
             </SelectContent>
           </Select>
         </div>
-        <button type="button" onClick={onClear} className="text-sm text-primary underline-offset-4 hover:underline">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onClear}
+          disabled={category === undefined && urgency === undefined}
+        >
           Clear filters
-        </button>
+        </Button>
       </div>
       <p className="text-xs text-muted-foreground">
         Uncategorized new or failed messages are not included when filtering by category.
