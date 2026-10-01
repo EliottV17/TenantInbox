@@ -207,11 +207,19 @@ export const classifyMessage = internalAction({
   args: { messageId: v.id("messages") },
   returns: v.null(),
   handler: async (ctx, args) => {
-    // 1. Read env vars — fail fast if missing
+    // 1. Read env vars — fail fast if missing.
+    //    These checks run BEFORE setClassifying so the message is still
+    //    "new". We use setClassifying (which accepts "new") to mark the
+    //    failure so the state machine stays consistent.
     const apiKey = process.env.OPENROUTER_API_KEY;
     const model = process.env.OPENROUTER_MODEL;
 
     if (!apiKey) {
+      // Move to classifying then immediately fail so markFailed's guard
+      // (status === "classifying") is satisfied.
+      await ctx.runMutation(internal.classify.setClassifying, {
+        messageId: args.messageId,
+      });
       await ctx.runMutation(internal.classify.markFailed, {
         messageId: args.messageId,
         failReason: "Missing OPENROUTER_API_KEY",
@@ -219,6 +227,9 @@ export const classifyMessage = internalAction({
       return null;
     }
     if (!model) {
+      await ctx.runMutation(internal.classify.setClassifying, {
+        messageId: args.messageId,
+      });
       await ctx.runMutation(internal.classify.markFailed, {
         messageId: args.messageId,
         failReason: "Missing OPENROUTER_MODEL",
@@ -231,21 +242,25 @@ export const classifyMessage = internalAction({
       messageId: args.messageId,
     });
 
-    // Re-read to see if setClassifying actually moved the status
-    const message: Awaited<ReturnType<typeof ctx.runQuery>> = await ctx.runQuery(
-      internal.classify.getMessage,
-      { messageId: args.messageId },
-    );
-    if (!message || message.status !== "classifying") {
-      // Daily limit hit or state guard prevented transition — already handled
-      return null;
-    }
-
-    // 3. Call OpenRouter
+    // Everything after setClassifying MUST be wrapped in try/catch so
+    // that any crash calls markFailed and the message never stays stuck
+    // in "classifying".
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
     try {
+      // Re-read to see if setClassifying actually moved the status
+      const message = await ctx.runQuery(
+        internal.classify.getMessage,
+        { messageId: args.messageId },
+      );
+      if (!message || message.status !== "classifying") {
+        // Daily limit hit or state guard prevented transition — already handled
+        clearTimeout(timeout);
+        return null;
+      }
+
+      // 3. Call OpenRouter
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -279,10 +294,13 @@ export const classifyMessage = internalAction({
         signal: controller.signal,
       });
 
-      clearTimeout(timeout);
+      // Do NOT clearTimeout here — the abort signal must stay armed
+      // while we read the response body (response.json()), not just
+      // the headers.
 
       // 4. Handle HTTP errors
       if (!response.ok) {
+        clearTimeout(timeout);
         const status = response.status;
         if (status === 429) {
           await ctx.runMutation(internal.classify.markFailed, {
@@ -298,17 +316,21 @@ export const classifyMessage = internalAction({
         return null;
       }
 
-      // 5. Parse outer response JSON
+      // 5. Parse outer response JSON (body read is still under timeout)
       let responseBody: unknown;
       try {
         responseBody = await response.json();
       } catch {
+        clearTimeout(timeout);
         await ctx.runMutation(internal.classify.markFailed, {
           messageId: args.messageId,
           failReason: "Invalid JSON response from OpenRouter",
         });
         return null;
       }
+
+      // Body fully read — safe to disarm the timeout now
+      clearTimeout(timeout);
 
       // 6. Check finish_reason
       const outerBody = responseBody as {
