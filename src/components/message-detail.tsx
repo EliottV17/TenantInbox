@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/../convex/_generated/api";
 import type { Id } from "@/../convex/_generated/dataModel";
 import { DraftEditor } from "@/components/draft-editor";
+import { RetryClassificationButton } from "@/components/retry-classification-button";
 import { MessageNotFound } from "@/components/message-not-found";
 import { StatusChip, ApprovedIndicator, ResolvedIndicator } from "@/components/status-chip";
 import { UrgencyChip } from "@/components/urgency-chip";
@@ -84,6 +85,7 @@ export function MessageDetail({ id }: { id: string }) {
             {(message.status === "classified" || message.draftReply !== undefined) && (
               <DraftEditor key={message._id} message={message} />
             )}
+            <RetryClassificationButton message={message} now={now} />
             <div className="space-y-2">
               <Button type="button" variant="outline" onClick={resolveMessage} disabled={pending || !canResolve(message)}>
                 {pending ? "Resolving…" : message.resolvedAt !== undefined ? "Resolved" : "Resolve message"}
