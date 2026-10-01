@@ -44,4 +44,3 @@ export function formatDate(epochMs: number): string {
     timeZoneName: "short",
   }).format(new Date(epochMs));
 }
-
