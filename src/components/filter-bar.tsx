@@ -68,9 +68,11 @@ export function FilterBar({ category, urgency, onChange, onClear }: FilterBarPro
           Clear filters
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Uncategorized new or failed messages are not included when filtering by category.
-      </p>
+      {category !== undefined && (
+        <p className="text-xs text-muted-foreground">
+          Uncategorized new or failed messages are not included when filtering by category.
+        </p>
+      )}
     </section>
   );
 }
