@@ -364,10 +364,11 @@ Antes de iniciar los hitos de implementación:
 
 | Commit | Descripción |
 |---|---|
-| `feat: add message list page with reactive query` | `/inbox` con `useQuery`, tabla de mensajes (usando `.take(50)`) |
-| `feat: add category and urgency filter bar` | Filtros de categoría y urgencia con selects de shadcn/ui |
-| `feat: add status and urgency chips` | Componentes de badge con colores semánticos. Incluye badge de estado "stuck" si `status === "classifying"` y han transcurrido >2 minutos desde `classifyingStartedAt`. |
-| `feat: add message detail page with draft editing` | `/inbox/[id]` con vista completa, edición del borrador, botones aprobar/resolver y botón de reintentar si `status === "failed"` o está "stuck" (y no está resuelto). |
+| `feat: add status and urgency chips` | Componentes de badge con colores semánticos e indicadores de aprobación/resolución. Incluye badge "stuck" si `status === "classifying"` y han transcurrido >2 minutos desde `classifyingStartedAt`, actualizado con un reloj cliente. Se implementan primero porque la lista los usa. |
+| `feat: add message list page with reactive query` | `/inbox` con `useQuery`, lista responsive de los 50 mensajes más recientes, estados de carga/vacío y formulario existente. |
+| `feat: add category and urgency filter bar` | Filtros de categoría y urgencia con selects de shadcn/ui, persistidos en la URL; "All" se traduce a argumentos opcionales. |
+| `feat: add message detail page with draft editing` | `/inbox/[id]` con params asíncronos, vista completa, edición del borrador sin perder cambios locales, botones aprobar/resolver con las guardas del backend y errores legibles. |
+| `feat: add classification retry controls` | Botón de reintentar en el detalle si `status === "failed"` o está "stuck"; deshabilitado si está aprobado o resuelto, con errores del servidor visibles. |
 
 **Criterio de terminación**: la UI muestra mensajes en tiempo real. Los filtros funcionan. Se puede ver el detalle, editar el borrador, aprobar y resolver un mensaje. El botón "Reintentar" aparece en mensajes `failed` o "stuck".
 
