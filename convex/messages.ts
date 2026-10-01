@@ -101,8 +101,21 @@ export const updateDraft = mutation({
     if (!message) {
       throw new Error("Message not found");
     }
+    if (message.status !== "classified") {
+      throw new Error("Cannot edit draft of an unclassified message");
+    }
+    if (message.resolvedAt !== undefined) {
+      throw new Error("Cannot edit draft of a resolved message");
+    }
+    if (message.approvedAt !== undefined) {
+      throw new Error("Cannot edit draft of an already approved message");
+    }
+    if (args.draftReply.trim().length === 0) {
+      throw new Error("Draft reply cannot be empty");
+    }
+
     await ctx.db.patch(args.id, {
-      draftReply: args.draftReply,
+      draftReply: args.draftReply.trim(),
     });
   },
 });
@@ -116,6 +129,16 @@ export const approve = mutation({
     if (!message) {
       throw new Error("Message not found");
     }
+    if (message.status !== "classified" || !message.draftReply?.trim()) {
+      throw new Error("Only classified messages with a draft reply can be approved");
+    }
+    if (message.resolvedAt !== undefined) {
+      throw new Error("Cannot approve a resolved message");
+    }
+    if (message.approvedAt !== undefined) {
+      throw new Error("Message is already approved");
+    }
+
     await ctx.db.patch(args.id, {
       approvedAt: Date.now(),
     });
@@ -131,6 +154,11 @@ export const resolve = mutation({
     if (!message) {
       throw new Error("Message not found");
     }
+    // Idempotent: do not overwrite an existing resolution timestamp
+    if (message.resolvedAt !== undefined) {
+      return;
+    }
+
     await ctx.db.patch(args.id, {
       resolvedAt: Date.now(),
     });
