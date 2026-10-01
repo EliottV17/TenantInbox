@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as classify from "../classify.js";
 import type * as http from "../http.js";
+import type * as lib_schemas from "../lib/schemas.js";
 import type * as messages from "../messages.js";
 
 import type {
@@ -18,7 +20,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  classify: typeof classify;
   http: typeof http;
+  "lib/schemas": typeof lib_schemas;
   messages: typeof messages;
 }>;
 
