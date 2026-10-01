@@ -51,15 +51,15 @@ export function MessageDetail({ id }: { id: string }) {
       <div className="mx-auto max-w-3xl space-y-6">
         <Link href="/inbox" className="text-sm text-primary underline-offset-4 hover:underline">← Back to inbox</Link>
         <Card>
-          <CardHeader className="space-y-3">
+          <CardHeader className="min-w-0 space-y-3">
             <div className="flex flex-wrap gap-2">
               <StatusChip status={message.status} classifyingStartedAt={message.classifyingStartedAt} now={now} />
               <UrgencyChip urgency={message.urgency} />
               {message.approvedAt !== undefined && <ApprovedIndicator />}
               {message.resolvedAt !== undefined && <ResolvedIndicator />}
             </div>
-            <CardTitle className="text-2xl wrap-anywhere">{message.subject}</CardTitle>
-            <p className="text-sm text-muted-foreground wrap-anywhere">From {message.sender}</p>
+            <CardTitle title={message.subject} className="min-w-0 line-clamp-2 text-2xl wrap-anywhere">{message.subject}</CardTitle>
+            <p title={`From ${message.sender}`} className="min-w-0 truncate text-sm text-muted-foreground">From {message.sender}</p>
           </CardHeader>
           <CardContent className="space-y-6">
             {message.status === "new" && <p role="status" className="text-sm text-muted-foreground">Waiting for classification.</p>}

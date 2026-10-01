@@ -120,13 +120,13 @@ export function MessageList({ category, urgency }: MessageListProps) {
                *   sm+     → horizontal (flex-row) with subject/sender on left,
                *             chips + date on right
                */}
-              <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] sm:items-start">
                 {/* Left: sender + subject */}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground group-hover:text-foreground">
+                  <p title={message.sender} className="truncate text-sm font-semibold text-foreground group-hover:text-foreground">
                     {message.sender}
                   </p>
-                  <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                  <p title={message.subject} className="mt-0.5 truncate text-sm text-muted-foreground">
                     {message.subject}
                   </p>
                 </div>
