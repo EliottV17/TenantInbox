@@ -1,4 +1,5 @@
 import { MessageForm } from "@/components/message-form";
+import { MessageList } from "@/components/message-list";
 
 export default function InboxPage() {
   return (
@@ -13,6 +14,7 @@ export default function InboxPage() {
           </p>
         </div>
         <MessageForm />
+        <MessageList />
       </div>
     </div>
   );
