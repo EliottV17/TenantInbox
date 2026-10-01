@@ -216,12 +216,67 @@ export const resolve = mutation({
   },
 });
 
+export const STUCK_CLASSIFYING_THRESHOLD_MS = 120_000; // 2 minutes (per docs/PLAN.md)
+
+/**
+ * Validates whether a message is eligible for re-classification.
+ *
+ * A message can only be retried if:
+ * 1. It is not resolved (resolvedAt === undefined).
+ * 2. It has not been approved (approvedAt === undefined), to prevent wiping an approved draft.
+ * 3. Its status is either "failed", or "classifying" and stuck for > 2 minutes.
+ */
+export function checkRetryEligibility(
+  message: {
+    status: "new" | "classifying" | "classified" | "failed";
+    classifyingStartedAt?: number;
+    approvedAt?: number;
+    resolvedAt?: number;
+  },
+  now: number = Date.now(),
+): { eligible: true } | { eligible: false; reason: string } {
+  if (message.resolvedAt !== undefined) {
+    return { eligible: false, reason: "Cannot retry classification of a resolved message" };
+  }
+  if (message.approvedAt !== undefined) {
+    return { eligible: false, reason: "Cannot retry classification of an approved message" };
+  }
+
+  if (message.status === "failed") {
+    return { eligible: true };
+  }
+
+  if (message.status === "classifying") {
+    const startedAt = message.classifyingStartedAt ?? 0;
+    const isStuck = now - startedAt > STUCK_CLASSIFYING_THRESHOLD_MS;
+    if (isStuck) {
+      return { eligible: true };
+    }
+    return {
+      eligible: false,
+      reason: "Classification is currently in progress; retry is only allowed if stuck for > 2 minutes",
+    };
+  }
+
+  if (message.status === "new") {
+    return { eligible: false, reason: "Message is already pending classification" };
+  }
+
+  if (message.status === "classified") {
+    return { eligible: false, reason: "Message is already successfully classified" };
+  }
+
+  return { eligible: false, reason: "Message is not eligible for classification retry" };
+}
+
 /**
  * Retry classification for a failed or stuck message.
  *
  * Guards:
- * - Message must exist and not be resolved (resolvedAt === undefined).
- * - Resets status to "new", clears failReason, and schedules a new action.
+ * - Message must exist.
+ * - Must not be resolved or approved.
+ * - Status must be "failed" OR "classifying" stuck for > 2 minutes.
+ * - Resets status to "new", clears failReason and classifyingStartedAt, and schedules a new action.
  */
 export const retryClassification = mutation({
   args: {
@@ -232,8 +287,10 @@ export const retryClassification = mutation({
     if (!message) {
       throw new Error("Message not found");
     }
-    if (message.resolvedAt !== undefined) {
-      throw new Error("Cannot retry classification of a resolved message");
+
+    const check = checkRetryEligibility(message);
+    if (!check.eligible) {
+      throw new Error(check.reason);
     }
 
     await ctx.db.patch(args.id, {
