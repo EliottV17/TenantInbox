@@ -1,5 +1,6 @@
+import { Suspense } from "react";
 import { MessageForm } from "@/components/message-form";
-import { MessageList } from "@/components/message-list";
+import { InboxContent } from "@/components/inbox-content";
 
 export default function InboxPage() {
   return (
@@ -14,7 +15,9 @@ export default function InboxPage() {
           </p>
         </div>
         <MessageForm />
-        <MessageList />
+        <Suspense fallback={<p role="status">Loading filters…</p>}>
+          <InboxContent />
+        </Suspense>
       </div>
     </div>
   );
