@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { SEED_MESSAGES } from "../convex/lib/seed-data";
+import { SEED_MESSAGES } from "../convex/lib/seed_data";
 import { classificationResponseSchema } from "../convex/lib/schemas";
 
 describe("SEED_MESSAGES", () => {
+  it("treats the possible duplicate rent withdrawal as a medium billing concern", () => {
+    const message = SEED_MESSAGES.find(
+      (fixture) =>
+        fixture.sender === "Tenant Gale-571" &&
+        fixture.subject === "Autopay seems to have withdrawn rent twice",
+    );
+
+    expect(message).toMatchObject({ category: "billing", urgency: "medium" });
+  });
+
   it("contains 30 classified messages with the planned category distribution", () => {
     expect(SEED_MESSAGES).toHaveLength(30);
     const counts = Object.fromEntries(

@@ -11,7 +11,9 @@
 import type * as classify from "../classify.js";
 import type * as http from "../http.js";
 import type * as lib_schemas from "../lib/schemas.js";
+import type * as lib_seed_data from "../lib/seed_data.js";
 import type * as messages from "../messages.js";
+import type * as seed from "../seed.js";
 
 import type {
   ApiFromModules,
@@ -23,7 +25,9 @@ declare const fullApi: ApiFromModules<{
   classify: typeof classify;
   http: typeof http;
   "lib/schemas": typeof lib_schemas;
+  "lib/seed_data": typeof lib_seed_data;
   messages: typeof messages;
+  seed: typeof seed;
 }>;
 
 /**

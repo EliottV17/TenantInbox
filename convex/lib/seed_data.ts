@@ -225,7 +225,7 @@ export const SEED_MESSAGES = [
     channel: "webhook",
     status: "classified",
     category: "billing",
-    urgency: "high",
+    urgency: "medium",
     summary: "The tenant sees two rent-sized portal withdrawals, one still pending, and asks whether both are linked to the account. A duplicate charge could affect available funds.",
     draftReply: "I’m sorry for the uncertainty. Please do not submit another payment while we review the entries; keep the transaction references, and we’ll compare the portal records and explain the next steps once the pending item updates.",
     classifiedAt: 1_737_158_400_000,
