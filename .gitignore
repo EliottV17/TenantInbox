@@ -40,3 +40,7 @@ next-env.d.ts
 
 # Local Pi runtime state
 .atl/
+
+# Local agent directories
+.codegraph/
+odd/
