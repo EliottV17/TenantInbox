@@ -378,13 +378,20 @@ Antes de iniciar los hitos de implementación:
 
 **Rama**: `feat/seed`
 
-| Commit | Descripción |
-|---|---|
-| `feat: add idempotent seed script with 30 realistic pre-classified messages` | `convex/seed.ts` como `internalMutation`, ejecutable con `bunx convex run seed:seedMessages`. **Idempotente**: verifica si la tabla ya tiene datos y no inserta duplicados. Los 30 mensajes se insertan ya clasificados (`status: "classified"` con `category`, `urgency`, `summary` y `draftReply` pre-escritos). No interactúa con la tabla `usage`. |
+| Orden | Commit | Descripción |
+|---|---|---|
+| 1 | `docs: update seed milestone plan` | Actualiza este Hito 6 con el contrato y los pasos de implementación. |
+| 2 | `feat: add realistic classified seed messages` | `convex/lib/seed-data.ts` contiene 30 mensajes ficticios, escritos a mano y clasificados, usando tipos derivados de la tabla existente. |
+| 3 | `test: validate classified seed messages` | `tests/seed-data.test.ts` valida contenido, schema, límites, unicidad y distribución/lifecycle de los fixtures. |
+| 4 | `feat: add idempotent seed mutation` | `convex/seed.ts` implementa `internalMutation`, ejecutable con `bunx convex run seed:seedMessages`. |
 
-**Justificación del seed pre-clasificado**: insertar mensajes ya clasificados es mejor para demo y desarrollo por tres razones: (1) no gasta créditos de OpenRouter en datos de prueba, (2) es instantáneo (no espera 30 llamadas al modelo), (3) produce datos predecibles y reproducibles que permiten verificar la UI sin depender de la disponibilidad del modelo.
+**Fixtures**: incluir exactamente 30 mensajes: damage 6, maintenance 7, billing 6, complaint 5 y general 6; 25 escritos en inglés y 5 en español. Cada uno tiene un `summary` en inglés y una respuesta profesional y empática (`draftReply`) en el mismo idioma que el mensaje. Todos tienen `status: "classified"`, los campos de clasificación válidos y `classifiedAt`. Cuatro tienen únicamente `approvedAt`; otros dos tienen tanto `approvedAt` como `resolvedAt`. No falsificar campos de sistema como `_creationTime`; no añadir timestamps de lifecycle a los demás fixtures. Los canales y niveles de urgencia deben ser variados y coherentes con el contenido. Respetar los límites de `sender` (100), `subject` (200) y `body` (5000) caracteres y el schema de clasificación Zod existente.
 
-**Criterio de terminación**: ejecutar `bunx convex run seed:seedMessages` puebla la DB con 30 mensajes variados. Ejecutarlo dos veces no duplica datos.
+**Contrato de la mutation**: para cada fixture, deduplicar por coincidencia exacta de `sender` y `subject` frente a los mensajes ya existentes, consultando ambos campos antes de aplicar `.take(1)`. Insertar únicamente los que no coincidan, sin borrar ni modificar mensajes existentes. No consultar ni modificar la tabla `usage` y no programar clasificación. Devolver exactamente `{ inserted, skipped }`, donde `inserted` es el número insertado y `skipped` el número omitido por duplicado. No cambiar índices ni el schema.
+
+**Justificación del seed pre-clasificado**: los mensajes clasificados no gastan créditos de OpenRouter, se insertan sin esperar llamadas al modelo y ofrecen datos predecibles para verificar la UI sin depender de la disponibilidad del modelo.
+
+**Criterio de terminación**: la primera ejecución inserta los fixtures no duplicados y cuenta el resto como omitidos; en una segunda ejecución con los mismos mensajes, inserta 0 y omite los 30. Los mensajes y la tabla `usage` que ya existían permanecen intactos.
 
 ---
 
