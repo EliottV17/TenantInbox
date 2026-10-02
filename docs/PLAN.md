@@ -399,13 +399,16 @@ Antes de iniciar los hitos de implementación:
 
 **Rama**: `docs/readme-and-ci`
 
-| Commit | Descripción |
-|---|---|
-| `docs: add comprehensive README with architecture and setup` | Arquitectura, cómo correrlo (con bun), decisiones de diseño. **Documentación explícita de seguridad**: deja asentado que la aplicación no cuenta con autenticación ni control de acceso por diseño (alcance acotado a demo técnica de 1-2 días) y debe utilizarse únicamente con datos ficticios. |
-| `chore: add github actions ci workflow` | `.github/workflows/ci.yml` con lint, typecheck (ambos tsconfigs con `convex/` excluido del raíz), `bun run test` |
-| `refactor: clean up and polish ui` | Ajustes finales de UI, loading states, empty states |
+**Orden obligatorio**: actualizar este plan en un commit separado; después CI; luego polish de UI acotado; README al final, documentando el código que realmente existe. No mezclar estos entregables ni ampliar su alcance.
 
-**Criterio de terminación**: README completo, CI verde (lint + typecheck + tests). La app está lista para demo.
+| Orden | Commit | Descripción |
+|---|---|---|
+| 1 | `docs: define readme and ci milestone scope` | Actualiza únicamente esta sección del plan para fijar el orden y alcance del Hito 7. |
+| 2 | `chore: add github actions ci workflow` | `.github/workflows/ci.yml` en `push` a `main` y `pull_request` hacia `main`; permisos mínimos `contents: read`; concurrencia por rama con cancelación de ejecuciones anteriores. Usa `actions/checkout@v7` y `oven-sh/setup-bun@v2` (versiones estables verificadas en sus fuentes oficiales). Instala con `bun install --frozen-lockfile` y ejecuta `bunx eslint . --max-warnings 0`, `bunx tsc --noEmit`, `(cd convex && bunx tsc --noEmit)` y `bun run test`. No genera código ni despliega Convex. Añadir un build solo si funciona sin un deployment real: puede recibir únicamente un `NEXT_PUBLIC_CONVEX_URL` ficticio como variable del paso; nunca usar secretos, credenciales ni llamadas a OpenRouter. |
+| 3 | `refactor: polish inbox ui within demo scope` | Sin rediseño. Audita metadata/favicon y corrige solo si faltan; añade una identidad/header global mínimo con enlace a `/inbox`; colapsa por defecto “New message” con control accesible, conservando el comportamiento del formulario; añade backlinks mínimos y coherentes en not-found/error. Revisa loading/empty states y cambia solo bugs claros. Máximo un commit por punto; metadata y header pueden compartir uno. |
+| 4 | `docs: add comprehensive README with architecture and setup` | README en inglés, fiel al código existente: arquitectura, seguridad y límites, setup local/Convex, testing y CI, badge de CI, demo y placeholders de screenshots claramente identificados. Usar solo datos ficticios y placeholders; no incluir secretos, deployments reales ni PII. Sin paso de deployment. Documentar discrepancias del plan (incluidos webhook y retry) según el comportamiento observado en el código, sin cambiar su implementación como parte de este hito. |
+
+**Criterio de terminación**: CI verde para lint, ambos typechecks y Vitest; build solo si satisface las restricciones anteriores. UI limitada a los ajustes descritos, sin regresiones en el comportamiento existente. README completo y verificado contra el código real, sin secretos ni datos reales. La aplicación queda lista para demo únicamente con datos ficticios; no implica que tenga autenticación o control de acceso.
 
 ---
 
