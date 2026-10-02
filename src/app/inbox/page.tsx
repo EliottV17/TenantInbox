@@ -8,7 +8,7 @@ export default function InboxPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Tenant Inbox
+            Inbox
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Property management inbox for receiving and classifying tenant communications.

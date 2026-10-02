@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Inbox — Property Management",
-  description: "AI-powered property management message classification",
+  title: "TenantInbox — AI-assisted tenant message triage",
+  description: "AI-assisted tenant message triage for property managers.",
 };
 
 export default function RootLayout({
@@ -29,7 +30,19 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+        <ConvexClientProvider>
+          <header className="border-b border-border bg-background">
+            <div className="mx-auto flex max-w-4xl items-center px-4 py-3 sm:px-6 lg:px-8">
+              <Link
+                href="/inbox"
+                className="font-semibold tracking-tight text-foreground hover:text-muted-foreground"
+              >
+                TenantInbox
+              </Link>
+            </div>
+          </header>
+          {children}
+        </ConvexClientProvider>
       </body>
     </html>
   );
