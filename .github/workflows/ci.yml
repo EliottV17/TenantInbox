@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bunx eslint . --max-warnings 0
+
+      - name: Typecheck application
+        run: bunx tsc --noEmit
+
+      - name: Typecheck Convex
+        run: (cd convex && bunx tsc --noEmit)
+
+      - name: Run tests
+        run: bun run test
+
+      - name: Build application
+        run: bun run build
+        env:
+          NEXT_PUBLIC_CONVEX_URL: https://ci-placeholder.convex.cloud
