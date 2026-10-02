@@ -381,7 +381,7 @@ Antes de iniciar los hitos de implementación:
 | Orden | Commit | Descripción |
 |---|---|---|
 | 1 | `docs: update seed milestone plan` | Actualiza este Hito 6 con el contrato y los pasos de implementación. |
-| 2 | `feat: add realistic classified seed messages` | `convex/lib/seed-data.ts` contiene 30 mensajes ficticios, escritos a mano y clasificados, usando tipos derivados de la tabla existente. |
+| 2 | `feat: add realistic classified seed messages` | `convex/lib/seed_data.ts` contiene 30 mensajes ficticios, escritos a mano y clasificados, usando tipos derivados de la tabla existente. |
 | 3 | `test: validate classified seed messages` | `tests/seed-data.test.ts` valida contenido, schema, límites, unicidad y distribución/lifecycle de los fixtures. |
 | 4 | `feat: add idempotent seed mutation` | `convex/seed.ts` implementa `internalMutation`, ejecutable con `bunx convex run seed:seedMessages`. |
 
