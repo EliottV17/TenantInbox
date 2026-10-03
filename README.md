@@ -65,7 +65,7 @@ Missing configuration, exhausted quota, HTTP/network errors, invalid output, or 
 
 The webhook checks `x-webhook-secret` against Convex-side `WEBHOOK_SECRET` using Web Crypto SHA-256 digests and a constant-time XOR loop. Missing or mismatched values return `401`; malformed or invalid payloads return `400`; accepted posts return `201` with `success: true` and `messageId`. The Convex **site URL** for HTTP actions is distinct from the client URL.
 
-The model response schema has enum category/urgency and string summary/reply fields. Zod validates shape at runtime; it does not enforce nonempty strings or semantic quality. OpenRouter also receives strict JSON Schema output, but the response is still parsed and validated before storage.
+The model response schema has enum category/urgency and string summary/reply fields. After parsing the model response, runtime Zod validation requires `summary` and `draftReply` to contain non-whitespace text and limits them to 500 and 3,000 characters, respectively; these checks are runtime-only, so OpenRouter's strict JSON Schema stays unchanged. Invalid output is marked `failed` with a readable reason and no partial classification data; this does not assess semantic quality.
 
 ## Local setup
 
