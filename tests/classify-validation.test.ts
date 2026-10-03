@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SEED_MESSAGES } from "../convex/lib/seed_data";
 import {
   classificationResponseSchema,
   getClassificationJsonSchema,
@@ -22,6 +23,70 @@ describe("classificationResponseSchema", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toEqual(validResponse);
+    }
+  });
+
+  it.each([
+    ["empty", ""],
+    ["whitespace-only", " \t\n "],
+  ])("rejects a %s summary", (_description, summary) => {
+    const result = classificationResponseSchema.safeParse({
+      ...validResponse,
+      summary,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it.each([
+    ["empty", ""],
+    ["whitespace-only", " \t\n "],
+  ])("rejects a %s draftReply", (_description, draftReply) => {
+    const result = classificationResponseSchema.safeParse({
+      ...validResponse,
+      draftReply,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects summary values over 500 characters", () => {
+    const result = classificationResponseSchema.safeParse({
+      ...validResponse,
+      summary: "a".repeat(501),
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects draftReply values over 3000 characters", () => {
+    const result = classificationResponseSchema.safeParse({
+      ...validResponse,
+      draftReply: "a".repeat(3001),
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("preserves surrounding whitespace in valid summary and draftReply values", () => {
+    const withSurroundingWhitespace = {
+      ...validResponse,
+      summary: "  A valid summary.  ",
+      draftReply: "  A valid reply.  ",
+    };
+    const result = classificationResponseSchema.safeParse(withSurroundingWhitespace);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual(withSurroundingWhitespace);
+    }
+  });
+
+  it("accepts all 30 seed fixture classifications", () => {
+    expect(SEED_MESSAGES).toHaveLength(30);
+    for (const [index, message] of SEED_MESSAGES.entries()) {
+      const result = classificationResponseSchema.safeParse({
+        category: message.category,
+        urgency: message.urgency,
+        summary: message.summary,
+        draftReply: message.draftReply,
+      });
+      expect(result.success, `fixture ${index + 1}: ${message.sender}`).toBe(true);
     }
   });
 

@@ -14,8 +14,14 @@ import { z } from "zod";
 export const classificationResponseSchema = z.object({
   category: z.enum(["damage", "maintenance", "billing", "complaint", "general"]),
   urgency: z.enum(["low", "medium", "high"]),
-  summary: z.string(),
-  draftReply: z.string(),
+  summary: z.string().refine(
+    (value) => value.trim().length > 0 && value.length <= 500,
+    "Summary must contain non-whitespace text and be at most 500 characters",
+  ),
+  draftReply: z.string().refine(
+    (value) => value.trim().length > 0 && value.length <= 3000,
+    "Draft reply must contain non-whitespace text and be at most 3000 characters",
+  ),
 });
 
 export type ClassificationResponse = z.infer<typeof classificationResponseSchema>;
