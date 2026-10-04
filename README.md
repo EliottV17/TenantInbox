@@ -4,8 +4,9 @@
 
 TenantInbox is a fictional property-management demo that classifies tenant messages and suggests reply drafts. A human reviews every draft; nothing is sent automatically. **Use fictional data only:** the app has no authentication or access control.
 
-<!-- TODO: Add a demo link when an intended, safe deployment exists. -->
-<!-- TODO: Add a screenshot after capturing the final UI. -->
+[Live demo](https://tenant-inbox-ten.vercel.app/inbox)
+
+![TenantInbox demo screenshot](public/demo-screenshoot.png)
 
 ## What it does?
 
