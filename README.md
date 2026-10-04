@@ -7,7 +7,7 @@ TenantInbox is a fictional property-management demo that classifies tenant messa
 <!-- TODO: Add a demo link when an intended, safe deployment exists. -->
 <!-- TODO: Add a screenshot after capturing the final UI. -->
 
-## What it does
+## What it does?
 
 - Accepts messages from an inbox form or a shared-secret HTTP webhook.
 - Schedules classification after saving a new message; Convex keeps subscribed inbox views current.
