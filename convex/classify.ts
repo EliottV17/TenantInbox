@@ -165,8 +165,8 @@ URGENCY LEVELS (choose exactly one):
   time pressure.
 
 RULES:
-1. The summary must be 1-2 sentences in English, capturing the core issue.
-2. The draftReply must be a professional, empathetic response in the SAME
+1. Keep the summary brief: 1-2 sentences in English, capturing the core issue.
+2. Keep the draftReply concise at about 80-120 words. It must be a professional, empathetic response in the SAME
    LANGUAGE as the tenant's message. Address the tenant's concern, explain
    next steps, and set expectations. This draft will ALWAYS be reviewed and
    edited by a human before sending.
