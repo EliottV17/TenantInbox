@@ -326,6 +326,7 @@ export const classifyMessage = internalAction({
         body: JSON.stringify({
           model,
           max_tokens: MAX_TOKENS,
+          reasoning: { effort: "low" },
           response_format: {
             type: "json_schema",
             json_schema: {
