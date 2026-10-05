@@ -253,8 +253,11 @@ export async function handleClassificationResponse(
 /** Timeout for the OpenRouter fetch call in milliseconds. */
 const FETCH_TIMEOUT_MS = 30_000;
 
-/** Max tokens for the model response (structured JSON is small). */
-const MAX_TOKENS = 1024;
+/**
+ * 2048 tokens leaves room for reasoning plus the bounded summary (500 chars)
+ * and draft (3000 chars); at Together's listed $0.50/M output rate, the cap costs at most $0.001024/call.
+ */
+const MAX_TOKENS = 2048;
 
 export const classifyMessage = internalAction({
   args: { messageId: v.id("messages") },
