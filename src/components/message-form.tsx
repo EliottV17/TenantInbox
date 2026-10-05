@@ -148,7 +148,7 @@ export function MessageForm() {
                 name="sender"
                 value={sender}
                 onChange={(e) => setSender(e.target.value)}
-                placeholder="e.g. Unit 4B - Jane Doe"
+                placeholder="e.g. Unit 4B - Carlos Mendoza"
                 disabled={isSubmitting}
                 aria-invalid={Boolean(errors.sender)}
                 aria-describedby={errors.sender ? "sender-error" : undefined}
