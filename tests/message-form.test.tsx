@@ -22,14 +22,6 @@ function renderForm() {
   act(() => root.render(createElement(MessageForm)));
 }
 
-function getToggle() {
-  const toggle = Array.from(container.querySelectorAll("button")).find(
-    (button) => button.textContent?.trim() === "New message",
-  );
-  expect(toggle).toBeDefined();
-  return toggle!;
-}
-
 function getInput(id: string) {
   const input = container.querySelector<HTMLInputElement>(`#${id}`);
   expect(input).not.toBeNull();
@@ -46,10 +38,6 @@ function changeValue(element: HTMLInputElement | HTMLTextAreaElement, value: str
     element.dispatchEvent(new Event("input", { bubbles: true }));
     element.dispatchEvent(new Event("change", { bubbles: true }));
   });
-}
-
-function expandForm() {
-  act(() => getToggle().click());
 }
 
 function fillForm(values = { sender: "  Unit 4B  ", subject: "  Leaky faucet  ", body: "  Please take a look.  " }) {
@@ -78,43 +66,24 @@ afterEach(() => {
   container.remove();
 });
 
-describe("MessageForm disclosure and submission", () => {
-  it("starts collapsed with an accessible control and a hidden, controlled region", () => {
+describe("MessageForm and submission", () => {
+  it("shows the form immediately without a New message disclosure control", () => {
     renderForm();
 
-    const toggle = getToggle();
-    const regionId = toggle.getAttribute("aria-controls");
-    expect(toggle.tagName).toBe("BUTTON");
-    expect((toggle as HTMLButtonElement).type).toBe("button");
-    expect(toggle.getAttribute("aria-expanded")).toBe("false");
-    expect(regionId).toBeTruthy();
-
-    const region = document.getElementById(regionId!);
-    expect(region).not.toBeNull();
-    expect(region?.hidden).toBe(true);
-    expect(region?.querySelector("#sender")).not.toBeNull();
-  });
-
-  it("toggles the form without submitting and retains typed values across collapse", () => {
-    renderForm();
-    const toggle = getToggle();
-
-    act(() => toggle.click());
-    expect(toggle.getAttribute("aria-expanded")).toBe("true");
-    fillForm();
-    act(() => toggle.click());
-    expect(toggle.getAttribute("aria-expanded")).toBe("false");
-    expect(document.getElementById(toggle.getAttribute("aria-controls")!)?.hidden).toBe(true);
-    act(() => toggle.click());
-    expect(getInput("sender").value).toBe("  Unit 4B  ");
-    expect(getInput("subject").value).toBe("  Leaky faucet  ");
-    expect(container.querySelector<HTMLTextAreaElement>("#body")?.value).toBe("  Please take a look.  ");
-    expect(createMessage).not.toHaveBeenCalled();
+    expect(
+      Array.from(container.querySelectorAll("button")).some(
+        (button) => button.textContent?.trim() === "New message",
+      ),
+    ).toBe(false);
+    expect(getInput("sender").isConnected).toBe(true);
+    expect(getInput("subject").isConnected).toBe(true);
+    expect(container.querySelector<HTMLTextAreaElement>("#body")).not.toBeNull();
+    expect(container.querySelector<HTMLDivElement>("#new-message-form")?.hidden).toBe(false);
+    expect(container.querySelector("form")?.hidden).toBe(false);
   });
 
   it("shows existing validation errors without calling the mutation", async () => {
     renderForm();
-    expandForm();
 
     await submitForm();
 
@@ -126,7 +95,6 @@ describe("MessageForm disclosure and submission", () => {
 
   it("submits trimmed values, protects the pending request, then clears only on success", async () => {
     renderForm();
-    expandForm();
     fillForm();
     let resolveMutation!: (value: unknown) => void;
     createMessage.mockReturnValueOnce(
@@ -143,7 +111,6 @@ describe("MessageForm disclosure and submission", () => {
       body: "Please take a look.",
     });
     expect(container.textContent).toContain("Sending...");
-    expect(getToggle().disabled).toBe(true);
     expect(createMessage).toHaveBeenCalledTimes(1);
 
     await act(async () => resolveMutation({ messageId: "fictional-message-id" }));
@@ -152,13 +119,10 @@ describe("MessageForm disclosure and submission", () => {
     expect(getInput("subject").value).toBe("");
     expect(container.querySelector<HTMLTextAreaElement>("#body")?.value).toBe("");
     expect(container.querySelector('[role="status"]')?.textContent).toContain("Message sent successfully");
-    expect(getToggle().getAttribute("aria-expanded")).toBe("true");
-    expect(getToggle().disabled).toBe(false);
   });
 
   it("retains inputs after server failure and permits a successful retry", async () => {
     renderForm();
-    expandForm();
     fillForm();
     createMessage
       .mockRejectedValueOnce(new Error("Temporary fictional failure"))
@@ -177,6 +141,5 @@ describe("MessageForm disclosure and submission", () => {
     expect(container.querySelector('[role="alert"]')).toBeNull();
     expect(container.querySelector('[role="status"]')).not.toBeNull();
     expect(getInput("sender").value).toBe("");
-    expect(getToggle().getAttribute("aria-expanded")).toBe("true");
   });
 });

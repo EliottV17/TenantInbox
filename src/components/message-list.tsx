@@ -50,6 +50,13 @@ interface MessageListProps {
 /** The backend returns at most this many messages per query. */
 const LIST_LIMIT = 50;
 
+const CATEGORY_COLORS: Record<string, string> = {
+  damage: "#c4746e",
+  maintenance: "#7fb4ca",
+  complaint: "#e6c384",
+  general: "#938aa9",
+};
+
 // ---------------------------------------------------------------------------
 // MessageList
 // ---------------------------------------------------------------------------
@@ -108,8 +115,8 @@ export function MessageList({ category, urgency }: MessageListProps) {
             <Link
               href={`/inbox/${message._id}`}
               className={[
-                "group block rounded-lg border border-border bg-card px-4 py-3",
-                "transition-colors hover:bg-muted/40 focus-visible:outline-none",
+                "group block rounded-md border border-border bg-card px-3.5 py-3",
+                "transition-colors hover:bg-muted focus-visible:outline-none",
                 "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               ].join(" ")}
               aria-label={`Message from ${message.sender}: ${message.subject}`}
@@ -133,10 +140,19 @@ export function MessageList({ category, urgency }: MessageListProps) {
 
                 {/* Right: chips + date */}
                 <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:justify-end">
-                  <span className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  <span
+                    className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium"
+                    style={{
+                      color: message.category === undefined
+                        ? "#A4A7A4"
+                        : CATEGORY_COLORS[message.category] ?? "#A4A7A4",
+                      backgroundColor: `color-mix(in srgb, ${message.category === undefined ? "#A4A7A4" : CATEGORY_COLORS[message.category] ?? "#A4A7A4"} 14%, transparent)`,
+                      borderColor: `color-mix(in srgb, ${message.category === undefined ? "#A4A7A4" : CATEGORY_COLORS[message.category] ?? "#A4A7A4"} 35%, #393B44)`,
+                    }}
+                  >
                     {message.category === undefined
                       ? "Not classified"
-                      : CATEGORY_LABELS[message.category]}
+                      : CATEGORY_LABELS[message.category] ?? String(message.category)}
                   </span>
 
                   {/* Urgency chip */}

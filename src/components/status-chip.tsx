@@ -54,47 +54,11 @@ interface StatusChipProps {
  * may not be wired in this project.
  */
 const CHIP_STYLES = {
-  /**
-   * gray — "new": neutral, message queued but not yet classifying.
-   * Uses muted background so it doesn't compete with coloured chips.
-   */
-  gray: cn(
-    "bg-gray-100 text-gray-600 border-gray-200",
-    "dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700",
-  ),
-
-  /**
-   * blue — "classifying": active, pulsing activity.
-   */
-  blue: cn(
-    "bg-blue-100 text-blue-700 border-blue-200",
-    "dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800",
-  ),
-
-  /**
-   * green — "classified": success.
-   */
-  green: cn(
-    "bg-green-100 text-green-700 border-green-200",
-    "dark:bg-green-900/40 dark:text-green-300 dark:border-green-800",
-  ),
-
-  /**
-   * red — "failed": error requiring user attention.
-   */
-  red: cn(
-    "bg-red-100 text-red-700 border-red-200",
-    "dark:bg-red-900/40 dark:text-red-300 dark:border-red-800",
-  ),
-
-  /**
-   * amber — "stuck": classifying exceeded the 2-minute threshold;
-   * user should retry.
-   */
-  amber: cn(
-    "bg-amber-100 text-amber-700 border-amber-200",
-    "dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800",
-  ),
+  gray: "border-[#393B44] bg-[#A4A7A4]/10 text-[#A4A7A4]",
+  blue: "border-[#7fb4ca]/40 bg-[#7fb4ca]/[0.14] text-[#7fb4ca]",
+  green: "border-[#7aa89f]/40 bg-[#7aa89f]/[0.14] text-[#7aa89f]",
+  red: "border-[#c4746e]/40 bg-[#c4746e]/[0.14] text-[#c4746e]",
+  amber: "border-[#e6c384]/40 bg-[#e6c384]/[0.14] text-[#e6c384]",
 } as const;
 
 type ChipColor = keyof typeof CHIP_STYLES;
@@ -199,8 +163,7 @@ export function ApprovedIndicator({ className }: { className?: string }) {
   return (
     <Badge
       className={cn(
-        "bg-emerald-100 text-emerald-700 border-emerald-200",
-        "dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800",
+        "border-[#87a987]/40 bg-[#87a987]/[0.14] text-[#87a987]",
         "font-medium",
         className,
       )}
@@ -221,8 +184,7 @@ export function ResolvedIndicator({ className }: { className?: string }) {
   return (
     <Badge
       className={cn(
-        "bg-slate-100 text-slate-600 border-slate-200",
-        "dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
+        "border-[#393B44] bg-[#A4A7A4]/10 text-[#A4A7A4]",
         "font-medium",
         className,
       )}
