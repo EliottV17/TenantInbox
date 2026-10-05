@@ -32,7 +32,6 @@ export function MessageForm() {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -101,27 +100,17 @@ export function MessageForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-xl">New Tenant Message</CardTitle>
-        <CardDescription>
-          Submit a new incoming inquiry or report. Messages will be queued for
-          classification.
-        </CardDescription>
+    <Card className="mx-auto w-full max-w-2xl border-border shadow-none">
+      <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
+        <div className="min-w-0">
+          <CardTitle className="text-lg">New Tenant Message</CardTitle>
+          <CardDescription className="mt-1">
+            Submit a new incoming inquiry or report. Messages will be queued for
+            classification.
+          </CardDescription>
+        </div>
       </CardHeader>
-      <div className="px-6">
-        <button
-          type="button"
-          className="inline-flex h-8 items-center justify-center rounded-lg border border-transparent px-2.5 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-          aria-expanded={isExpanded}
-          aria-controls="new-message-form"
-          disabled={isSubmitting}
-          onClick={() => setIsExpanded((expanded) => !expanded)}
-        >
-          New message
-        </button>
-      </div>
-      <div id="new-message-form" hidden={!isExpanded}>
+      <div id="new-message-form">
         <form onSubmit={handleSubmit} noValidate>
           <CardContent className="space-y-4">
             {successMessage && (
@@ -230,7 +219,7 @@ export function MessageForm() {
               )}
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end gap-3">
+          <CardFooter className="flex justify-end gap-3 py-3 mt-6">
             <Button
               type="submit"
               disabled={isSubmitting}

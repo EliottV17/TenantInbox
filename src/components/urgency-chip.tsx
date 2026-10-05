@@ -30,18 +30,9 @@ interface UrgencyChipProps {
 // ---------------------------------------------------------------------------
 
 const URGENCY_STYLES: Record<Urgency, string> = {
-  low: cn(
-    "bg-green-100 text-green-700 border-green-200",
-    "dark:bg-green-900/40 dark:text-green-300 dark:border-green-800",
-  ),
-  medium: cn(
-    "bg-amber-100 text-amber-700 border-amber-200",
-    "dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800",
-  ),
-  high: cn(
-    "bg-red-100 text-red-700 border-red-200",
-    "dark:bg-red-900/40 dark:text-red-300 dark:border-red-800",
-  ),
+  low: cn("border-[#87a987]/40 bg-[#87a987]/[0.14] text-[#87a987]"),
+  medium: cn("border-[#e6c384]/40 bg-[#e6c384]/[0.14] text-[#e6c384]"),
+  high: cn("border-[#e46876]/40 bg-[#e46876]/[0.14] text-[#e46876]"),
 };
 
 // ---------------------------------------------------------------------------
