@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import {
   classificationResponseSchema,
   getClassificationJsonSchema,
+  type ClassificationResponse,
 } from "./lib/schemas";
 
 /** Maximum number of classification attempts per UTC day. */
@@ -164,8 +165,8 @@ URGENCY LEVELS (choose exactly one):
   time pressure.
 
 RULES:
-1. The summary must be 1-2 sentences in English, capturing the core issue.
-2. The draftReply must be a professional, empathetic response in the SAME
+1. Keep the summary brief: 1-2 sentences in English, capturing the core issue.
+2. Keep the draftReply concise at about 80-120 words. It must be a professional, empathetic response in the SAME
    LANGUAGE as the tenant's message. Address the tenant's concern, explain
    next steps, and set expectations. This draft will ALWAYS be reviewed and
    edited by a human before sending.
@@ -197,11 +198,66 @@ ${sanitizeForPrompt(body)}
 // Classification action
 // ---------------------------------------------------------------------------
 
+type ClassificationChoice = {
+  finish_reason?: string | null;
+  message?: { content?: string | null };
+};
+
+type ClassificationResponseCallbacks = {
+  markFailed: (reason: string) => Promise<unknown>;
+  saveResult: (result: ClassificationResponse) => Promise<unknown>;
+};
+
+/** Handle the model choice, rejecting incomplete responses before parsing content. */
+export async function handleClassificationResponse(
+  choice: ClassificationChoice,
+  callbacks: ClassificationResponseCallbacks,
+): Promise<void> {
+  if (choice.finish_reason === "length") {
+    await callbacks.markFailed("Model response was truncated by the token limit");
+    return;
+  }
+  if (choice.finish_reason !== "stop") {
+    await callbacks.markFailed(
+      `Model response was incomplete (finish reason: ${choice.finish_reason ?? "unknown"})`,
+    );
+    return;
+  }
+
+  const content = choice.message?.content;
+  if (!content) {
+    await callbacks.markFailed("No content in model response");
+    return;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    await callbacks.markFailed("Invalid JSON response from model");
+    return;
+  }
+
+  const result = classificationResponseSchema.safeParse(parsed);
+  if (!result.success) {
+    const issues = result.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    await callbacks.markFailed(`Validation failed: ${issues}`);
+    return;
+  }
+
+  await callbacks.saveResult(result.data);
+}
+
 /** Timeout for the OpenRouter fetch call in milliseconds. */
 const FETCH_TIMEOUT_MS = 30_000;
 
-/** Max tokens for the model response (structured JSON is small). */
-const MAX_TOKENS = 1024;
+/**
+ * 2048 tokens leaves room for reasoning plus the bounded summary (500 chars)
+ * and draft (3000 chars); at Together's listed $0.50/M output rate, the cap costs at most $0.001024/call.
+ */
+const MAX_TOKENS = 2048;
 
 export const classifyMessage = internalAction({
   args: { messageId: v.id("messages") },
@@ -270,6 +326,7 @@ export const classifyMessage = internalAction({
         body: JSON.stringify({
           model,
           max_tokens: MAX_TOKENS,
+          reasoning: { effort: "low" },
           response_format: {
             type: "json_schema",
             json_schema: {
@@ -332,12 +389,10 @@ export const classifyMessage = internalAction({
       // Body fully read — safe to disarm the timeout now
       clearTimeout(timeout);
 
-      // 6. Check finish_reason
-      const outerBody = responseBody as {
-        choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
-      };
+      // 6. Classify the finish reason before parsing any model content.
+      const outerBody = responseBody as { choices?: ClassificationChoice[] };
       const choice = outerBody.choices?.[0];
-      if (!choice?.message?.content) {
+      if (!choice) {
         await ctx.runMutation(internal.classify.markFailed, {
           messageId: args.messageId,
           failReason: "No content in model response",
@@ -345,46 +400,20 @@ export const classifyMessage = internalAction({
         return null;
       }
 
-      if (choice.finish_reason === "length") {
-        await ctx.runMutation(internal.classify.markFailed, {
-          messageId: args.messageId,
-          failReason: "Model response was truncated (max_tokens reached)",
-        });
-        return null;
-      }
-
-      // 7. Parse the model's JSON content
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(choice.message.content);
-      } catch {
-        await ctx.runMutation(internal.classify.markFailed, {
-          messageId: args.messageId,
-          failReason: "Invalid JSON response from model",
-        });
-        return null;
-      }
-
-      // 8. Validate with Zod
-      const result = classificationResponseSchema.safeParse(parsed);
-      if (!result.success) {
-        const issues = result.error.issues
-          .map((i) => `${i.path.join(".")}: ${i.message}`)
-          .join("; ");
-        await ctx.runMutation(internal.classify.markFailed, {
-          messageId: args.messageId,
-          failReason: `Validation failed: ${issues}`,
-        });
-        return null;
-      }
-
-      // 9. Save successful result
-      await ctx.runMutation(internal.classify.saveResult, {
-        messageId: args.messageId,
-        category: result.data.category,
-        urgency: result.data.urgency,
-        summary: result.data.summary,
-        draftReply: result.data.draftReply,
+      await handleClassificationResponse(choice, {
+        markFailed: async (failReason) =>
+          await ctx.runMutation(internal.classify.markFailed, {
+            messageId: args.messageId,
+            failReason,
+          }),
+        saveResult: async (result) =>
+          await ctx.runMutation(internal.classify.saveResult, {
+            messageId: args.messageId,
+            category: result.category,
+            urgency: result.urgency,
+            summary: result.summary,
+            draftReply: result.draftReply,
+          }),
       });
 
       return null;
